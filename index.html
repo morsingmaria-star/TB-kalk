@@ -11,25 +11,26 @@
 body {
   font-family: 'Roboto', sans-serif;
   background: #FFF1E8;
-  padding: 20px;
+  padding: 16px;
   color: #2B2B2B;
 }
 
 header {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 25px;
+  gap: 16px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 header img {
-  height: 45px;
+  height: 40px;
 }
 
 h1 {
   margin: 0;
   color: #E94B4B;
+  font-size: 1.5em;
 }
 
 .container {
@@ -54,34 +55,33 @@ h1 {
 
 label {
   display: block;
-  margin-top: 12px;
+  margin-top: 10px;
   font-weight: 500;
 }
 
 input, select {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   margin-top: 4px;
   border-radius: 6px;
   border: 1px solid #DDD;
-  font-size: 1rem;
 }
 
 input[disabled] {
-  background: #F3F3F3;
+  background: #F5F5F5;
   color: #555;
 }
 
 .highlight {
-  font-size: 2rem;
+  font-size: 1.9em;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .tb-procent {
-  font-size: 1.6rem;
+  font-size: 1.4em;
   font-weight: 700;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .tb-green { color: #1E8E3E; }
@@ -93,23 +93,14 @@ input[disabled] {
   font-weight: 700;
 }
 
-/* Mobil */
-@media (max-width: 768px) {
-  body { padding: 12px; }
+.subtle {
+  margin-top: 6px;
+  font-weight: 500;
+}
 
-  header {
-    justify-content: center;
-    text-align: center;
-  }
-
+@media (max-width: 900px) {
   .container {
     grid-template-columns: 1fr;
-  }
-
-  .highlight,
-  .tb-procent,
-  .result-row {
-    text-align: center;
   }
 }
 </style>
@@ -124,7 +115,7 @@ input[disabled] {
 
 <div class="container">
 
-  <!-- INDATA -->
+  <!-- INPUT -->
   <div class="card">
     <h2>Indata</h2>
 
@@ -140,10 +131,10 @@ input[disabled] {
     <label>Timlön (SEK)</label>
     <input type="number" id="timlon" value="300">
 
-    <label id="timlonSemesterLabel">
-      Timlön inkl. semesterersättning (12,5 %)
-    </label>
-    <input type="text" id="timlonSemester" disabled>
+    <div id="semesterRad" style="display:none">
+      <label>Timlön inkl. semesterersättning (12,5 %)</label>
+      <input type="text" id="timlonSemester" disabled>
+    </div>
 
     <label>Anställningsform</label>
     <select id="anstForm">
@@ -178,6 +169,8 @@ input[disabled] {
     <div id="tbTotal" class="highlight">TB1 totalt: 0 SEK</div>
     <div id="tbProcent" class="tb-procent">TB %: 0 %</div>
 
+    <div id="totalIntakt" class="subtle">Total intäkt: 0 SEK</div>
+
     <div class="result-row" id="perVecka"></div>
     <div class="result-row" id="perManad"></div>
   </div>
@@ -196,17 +189,6 @@ function berakna() {
   const boende = +boendeEl.value;
   const alder = alderEl.value;
   const anstForm = anstFormEl.value;
-
-  /* Semesterersättning – endast anställd */
-  if (anstForm === "anstalld") {
-    const timlonMedSemester = timlon * 1.125;
-    timlonSemesterEl.value = Math.round(timlonMedSemester) + " SEK";
-    timlonSemesterEl.style.display = "block";
-    timlonSemesterLabelEl.style.display = "block";
-  } else {
-    timlonSemesterEl.style.display = "none";
-    timlonSemesterLabelEl.style.display = "none";
-  }
 
   const timmarPerVecka = 40 * omfattning;
   const totalaTimmar = timmarPerVecka * veckor;
@@ -231,6 +213,7 @@ function berakna() {
 
   tbTotalEl.innerText = "TB1 totalt: " + Math.round(tbTotal) + " SEK";
   tbProcentEl.innerText = "TB %: " + (tbProcent * 100).toFixed(1) + " %";
+  totalIntaktEl.innerText = "Total intäkt: " + Math.round(intakt) + " SEK";
 
   const färg =
     tbProcent > 0.10 ? "tb-green" :
@@ -248,15 +231,19 @@ function berakna() {
     "Per månad – Intäkt: " + Math.round(intakt / veckor * 4.175) +
     " | Kostnad: " + Math.round(totalKostnad / veckor * 4.175) +
     " | TB: " + Math.round(tbTotal / veckor * 4.175) + " SEK";
+
+  if (anstForm === "anstalld") {
+    semesterRad.style.display = "block";
+    timlonSemester.value = Math.round(timlon * 1.125) + " SEK";
+  } else {
+    semesterRad.style.display = "none";
+  }
 }
 
-/* Element */
 const veckorEl = document.getElementById("veckor");
 const omfattningEl = document.getElementById("omfattning");
 const introEl = document.getElementById("introTimmar");
 const timlonEl = document.getElementById("timlon");
-const timlonSemesterEl = document.getElementById("timlonSemester");
-const timlonSemesterLabelEl = document.getElementById("timlonSemesterLabel");
 const debEl = document.getElementById("debitering");
 const kickEl = document.getElementById("kickback");
 const resorEl = document.getElementById("resor");
@@ -266,8 +253,11 @@ const anstFormEl = document.getElementById("anstForm");
 
 const tbTotalEl = document.getElementById("tbTotal");
 const tbProcentEl = document.getElementById("tbProcent");
+const totalIntaktEl = document.getElementById("totalIntakt");
 const perVeckaEl = document.getElementById("perVecka");
 const perManadEl = document.getElementById("perManad");
+const timlonSemester = document.getElementById("timlonSemester");
+const semesterRad = document.getElementById("semesterRad");
 
 document.querySelectorAll("input, select").forEach(el =>
   el.addEventListener("input", berakna)
