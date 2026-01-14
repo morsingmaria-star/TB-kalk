@@ -67,6 +67,11 @@ input, select {
   font-size: 1rem;
 }
 
+input[disabled] {
+  background: #F3F3F3;
+  color: #555;
+}
+
 .highlight {
   font-size: 2rem;
   font-weight: 700;
@@ -88,12 +93,9 @@ input, select {
   font-weight: 700;
 }
 
-/* 📱 MOBILANPASSNING */
+/* Mobil */
 @media (max-width: 768px) {
-
-  body {
-    padding: 12px;
-  }
+  body { padding: 12px; }
 
   header {
     justify-content: center;
@@ -104,32 +106,10 @@ input, select {
     grid-template-columns: 1fr;
   }
 
-  .card {
-    padding: 16px;
-  }
-
-  h1 {
-    font-size: 1.4rem;
-  }
-
-  .highlight {
-    font-size: 1.8rem;
-    text-align: center;
-  }
-
-  .tb-procent {
-    font-size: 1.4rem;
-    text-align: center;
-  }
-
+  .highlight,
+  .tb-procent,
   .result-row {
     text-align: center;
-    line-height: 1.4;
-  }
-
-  input, select {
-    padding: 12px;
-    font-size: 1rem;
   }
 }
 </style>
@@ -144,6 +124,7 @@ input, select {
 
 <div class="container">
 
+  <!-- INDATA -->
   <div class="card">
     <h2>Indata</h2>
 
@@ -158,6 +139,11 @@ input, select {
 
     <label>Timlön (SEK)</label>
     <input type="number" id="timlon" value="300">
+
+    <label id="timlonSemesterLabel">
+      Timlön inkl. semesterersättning (12,5 %)
+    </label>
+    <input type="text" id="timlonSemester" disabled>
 
     <label>Anställningsform</label>
     <select id="anstForm">
@@ -185,6 +171,7 @@ input, select {
     <input type="number" id="boende" value="0">
   </div>
 
+  <!-- RESULTAT -->
   <div class="card">
     <h2>Resultat</h2>
 
@@ -209,6 +196,17 @@ function berakna() {
   const boende = +boendeEl.value;
   const alder = alderEl.value;
   const anstForm = anstFormEl.value;
+
+  /* Semesterersättning – endast anställd */
+  if (anstForm === "anstalld") {
+    const timlonMedSemester = timlon * 1.125;
+    timlonSemesterEl.value = Math.round(timlonMedSemester) + " SEK";
+    timlonSemesterEl.style.display = "block";
+    timlonSemesterLabelEl.style.display = "block";
+  } else {
+    timlonSemesterEl.style.display = "none";
+    timlonSemesterLabelEl.style.display = "none";
+  }
 
   const timmarPerVecka = 40 * omfattning;
   const totalaTimmar = timmarPerVecka * veckor;
@@ -252,10 +250,13 @@ function berakna() {
     " | TB: " + Math.round(tbTotal / veckor * 4.175) + " SEK";
 }
 
+/* Element */
 const veckorEl = document.getElementById("veckor");
 const omfattningEl = document.getElementById("omfattning");
 const introEl = document.getElementById("introTimmar");
 const timlonEl = document.getElementById("timlon");
+const timlonSemesterEl = document.getElementById("timlonSemester");
+const timlonSemesterLabelEl = document.getElementById("timlonSemesterLabel");
 const debEl = document.getElementById("debitering");
 const kickEl = document.getElementById("kickback");
 const resorEl = document.getElementById("resor");
@@ -277,4 +278,3 @@ berakna();
 
 </body>
 </html>
-
