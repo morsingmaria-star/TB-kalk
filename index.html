@@ -132,7 +132,7 @@ input[disabled] {
     <input type="number" id="timlon" value="300">
 
     <div id="semesterRad" style="display:none">
-      <label>Timlön inkl. semesterersättning (12,5 %)</label>
+      <label id="semesterLabel">Timlön inkl. semesterersättning</label>
       <input type="text" id="timlonSemester" disabled>
     </div>
 
@@ -140,6 +140,12 @@ input[disabled] {
     <select id="anstForm">
       <option value="anstalld">Anställd</option>
       <option value="underkonsult">Underkonsult</option>
+    </select>
+
+    <label>Yrkesroll</label>
+    <select id="yrke">
+      <option value="atft">AT/FT</option>
+      <option value="nurse">Nurse</option>
     </select>
 
     <label>Åldersprofil (endast anställd)</label>
@@ -189,6 +195,7 @@ function berakna() {
   const boende = +boendeEl.value;
   const alder = alderEl.value;
   const anstForm = anstFormEl.value;
+  const yrke = yrkeEl.value;
 
   const timmarPerVecka = 40 * omfattning;
   const totalaTimmar = timmarPerVecka * veckor;
@@ -203,8 +210,15 @@ function berakna() {
     if (alder === "68") { agLon = 0.24; agRB = 0.1021; }
   }
 
+  // Semesterersättningsprocent beroende på yrkesroll
+  let semPct = 0;
+  if (anstForm === "anstalld") {
+    if (yrke === "atft") semPct = 0.125;
+    if (yrke === "nurse") semPct = 0.13;
+  }
+
   const intakt = debiterbaraTimmar * debitering * (1 - kickback);
-  const lonKostnad = totalaTimmar * timlon * (1 + agLon);
+  const lonKostnad = totalaTimmar * timlon * (1 + semPct) * (1 + agLon);
   const rbKostnad = veckor * (resor + boende) * (1 + agRB);
 
   const totalKostnad = lonKostnad + rbKostnad;
@@ -234,7 +248,8 @@ function berakna() {
 
   if (anstForm === "anstalld") {
     semesterRad.style.display = "block";
-    timlonSemester.value = Math.round(timlon * 1.125) + " SEK";
+    semesterLabel.innerText = "Timlön inkl. semesterersättning (" + (semPct * 100).toFixed(1) + " %)";
+    timlonSemester.value = Math.round(timlon * (1 + semPct)) + " SEK";
   } else {
     semesterRad.style.display = "none";
   }
@@ -250,6 +265,8 @@ const resorEl = document.getElementById("resor");
 const boendeEl = document.getElementById("boende");
 const alderEl = document.getElementById("alder");
 const anstFormEl = document.getElementById("anstForm");
+const yrkeEl = document.getElementById("yrke");
+const semesterLabel = document.getElementById("semesterLabel");
 
 const tbTotalEl = document.getElementById("tbTotal");
 const tbProcentEl = document.getElementById("tbProcent");
