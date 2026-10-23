@@ -218,7 +218,7 @@ function berakna() {
   }
 
   const intakt = debiterbaraTimmar * debitering * (1 - kickback);
-  const lonKostnad = totalaTimmar * timlon * (1 + semPct) * (1 + agLon);
+  const lonKostnad = totalaTimmar * (timlon * (1 + agLon) + timlon * semPct);
   const rbKostnad = veckor * (resor + boende) * (1 + agRB);
 
   const totalKostnad = lonKostnad + rbKostnad;
